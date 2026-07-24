@@ -43,7 +43,7 @@ class DynamicUUID {
 }
 const v1 = 'tw.william.us.ci!txt', v2 = 'c24557f5-b870-4189-933e-081ae3ecd321';
 const UUIDKEY = ''; // 填写你的动态密钥，留空则使用v2的静态UUID
-const UUIDTIME = 3 * 24 * 60 * 60; // 动态UUID有效时长3天
+const UUIDTIME = 3 * 24 * 60 * 60; // 动态UUID有效时长
 
 const CFG={pw:v2,chunk:64*1024,dnPack:32*1024,dnTail:512,dnMs:0,dnQr:4,upPack:16*1024,upQMax:256*1024,maxED:8*1024,concur:4};
 const c_map=new Map,c_max=400,c_ttl=18e4;
@@ -119,4 +119,31 @@ async function f26(h,p,cf,gb){const cd=async(ad,pt)=>await f_race(ad,pt);let cv=
 async function f27(uc,ws){try{const ts=await f_race("8.8.4.4",53),wr=ts.writable.getWriter();await wr.write(uc),wr.releaseLock(),await ts.readable.pipeTo(new WritableStream({async write(c){ws.readyState===WebSocket.OPEN&&ws.send(c)}}))}catch{}}
 async function f28(rq,cf,gb){const wp=new WebSocketPair,[cs,ss]=Object.values(wp);ss.accept({allowHalfOpen:!0}),ss.binaryType="arraybuffer";let rw={socket:null,writer:null},dq=!1,closed=!1,busy=!1,pT=0,wsLock=Promise.resolve();const ssEngine=new SS,uq=mkQ(CFG.upPack),wither=()=>{if(!closed){closed=!0,uq.clear();try{rw.writer?.releaseLock()}catch{}f12(rw.socket),f12(ss)}};const toU8=d=>d instanceof Uint8Array?d:ArrayBuffer.isView(d)?new Uint8Array(d.buffer,d.byteOffset,d.byteLength):new Uint8Array(d);const sow=d=>{const u=toU8(d);return u.byteLength?uq.sow(u)?1:(wither(),0):1};async function thresh(){if(!busy&&!closed){busy=!0;try{for(;;){if(closed)break;if(dq){const[d]=uq.bundle();if(!d)break;await f27(d,ss);continue}if(!rw.socket){const[d]=uq.bundle();if(!d)break;let host,port,payload;if(1===pT){const parsed=await f_vmore(d);if(!parsed)throw new Error("E");ss.send(new Uint8Array([parsed.v,0]));if(parsed.u){if(53!==parsed.p)throw new Error("E");dq=!0,await f27(d.subarray(parsed.o),ss);continue}host=f_adr(parsed.t,parsed.b),port=parsed.p,payload=d.subarray(parsed.o)}else if(2===pT){const parsed=f_trajon(d);if(!parsed)throw new Error("E");host=f_adr(parsed.t,parsed.b),port=parsed.p,payload=d.subarray(parsed.o)}else{const parsed=f43(d);if(!parsed)throw new Error("E");host=parsed.h,port=parsed.p,payload=d.subarray(parsed.o)}const sock=await f26(host,port,cf,gb);if(!sock)throw new Error("E");rw.socket=sock,rw.writer=sock.writable.getWriter();const[first]=uq.bundle(payload);first?.byteLength&&await rw.writer.write(first),mill(sock.readable,ss,ssEngine,3!==pT).catch(()=>{});continue}const[d]=uq.bundle();if(!d)break;await rw.writer.write(d)}}catch{wither()}finally{busy=!1,!uq.empty&&!closed&&thresh()}}}let initLock = Promise.resolve();
 const pM=data=>{if(closed)return;const u=toU8(data);if(!u.byteLength)return;initLock=initLock.then(async()=>{if(closed)return;if(!pT)pT=(await f_vmore(u))?1:f_trajon(u)?2:3;if(1===pT||2===pT)sow(u)&&thresh();else wsLock=wsLock.then(async()=>{if(!closed){try{const{c,e}=await ssEngine.decData(u);if(e)return wither();let s=!1;for(const ck of c)sow(ck)&&(s=!0);s&&thresh()}catch{wither()}}}).catch(()=>{})}).catch(()=>{})};const edStr=rq.headers.get("sec-websocket-protocol"),eh=f11(edStr);if(eh.error)wither();else if(eh.earlyData)pM(eh.earlyData);return ss.addEventListener("message",e=>pM(e.data)),ss.addEventListener("close",wither),ss.addEventListener("error",wither),new Response(null,{status:101,webSocket:cs,headers:{"Sec-WebSocket-Extensions":""}})}
-export default{async fetch(rq,ev,cx){try{const cleanUrl=new URL(decodeURIComponent(rq.url)),iu="websocket"===rq.headers.get("Upgrade");let ff=rq.headers.get("fdip")||cleanUrl.searchParams.get("fdip");if(!ff&&cleanUrl.pathname.startsWith("/fdip="))ff=cleanUrl.pathname.substring(6).trim();const gb=cleanUrl.searchParams.get("global");if(!iu)return ff?new Response(`fdip checked: ${ff}\nglobal status: ${gb}\nUse in headers or query strings per request.\n`,{headers:{"Content-Type":"text/plain; charset=utf-8","Cache-Control":"no-store, no-cache, must-revalidate, max-age=0"}}):new Response("OK",{status:200});return await f28(new Request(cleanUrl.toString(),rq),ff,gb)}catch{return new Response("ERR",{status:500})}}};
+export default {
+    async fetch(rq, ev, cx) {
+        try {
+            const cleanUrl = new URL(decodeURIComponent(rq.url));
+            const iu = "websocket" === rq.headers.get("Upgrade");
+            
+            let ff = rq.headers.get("fdip") || cleanUrl.searchParams.get("fdip");
+            
+            if (!ff && cleanUrl.pathname.length > 1) {
+                if (cleanUrl.pathname.startsWith("/fdip=")) {
+                    ff = cleanUrl.pathname.substring(6).trim();
+                } else {
+                    ff = cleanUrl.pathname.substring(1).trim(); 
+                }
+            }
+            
+            const gb = cleanUrl.searchParams.get("global");
+            
+            if (!iu) return ff ? new Response(`Proxy checked: ${ff}\nGlobal status: ${gb}\n`, {
+                headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" }
+            }) : new Response("OK", { status: 200 });
+            
+            return await f28(new Request(cleanUrl.toString(), rq), ff, gb);
+        } catch {
+            return new Response("ERR", { status: 500 });
+        }
+    }
+};
